@@ -1,0 +1,51 @@
+src_provider_id,provider_name,specialty,hospital_name,region,load_ts
+DR00001,Neha Iyer,Orthopedics,City Care Hospital,North,2025-11-22 19:12:45.524388
+DR00002,Neha Reddy,Oncology,Global Health Center,East,2025-11-22 19:12:45.524399
+DR00003,Arjun Patel,Cardiology,City Care Hospital,West,2025-11-22 19:12:45.524406
+DR00004,Kunal Singh,Oncology,Metro Hospital,Central,2025-11-22 19:12:45.524422
+DR00005,Neha Das,Orthopedics,Sunrise Medical,North,2025-11-22 19:12:45.524429
+DR00006,Kunal Sharma,General Medicine,City Care Hospital,West,2025-11-22 19:12:45.524437
+DR00007,Rohan Patel,Orthopedics,Metro Hospital,Central,2025-11-22 19:12:45.524441
+DR00008,Kunal Iyer,Endocrinology,City Care Hospital,West,2025-11-22 19:12:45.524448
+DR00009,Amit Patel,Oncology,Prime Care Clinic,West,2025-11-22 19:12:45.524452
+DR00010,Sara Verma,General Medicine,City Care Hospital,South,2025-11-22 19:12:45.524456
+DR00011,Kunal Mehta,General Medicine,Prime Care Clinic,North,2025-11-22 19:12:45.524477
+DR00012,Kunal Reddy,Neurology,Sunrise Medical,South,2025-11-22 19:12:45.524483
+DR00013,Sara Singh,Cardiology,Prime Care Clinic,North,2025-11-22 19:12:45.524490
+DR00014,Isha Das,Oncology,Sunrise Medical,East,2025-11-22 19:12:45.524499
+DR00015,Priya Gupta,Cardiology,Global Health Center,East,2025-11-22 19:12:45.524508
+DR00016,Neha Singh,Orthopedics,Global Health Center,North,2025-11-22 19:12:45.524523
+DR00017,Priya Khan,General Medicine,Prime Care Clinic,Central,2025-11-22 19:12:45.524529
+DR00018,Vikram Mehta,Neurology,Prime Care Clinic,East,2025-11-22 19:12:45.524536
+DR00019,Sara Singh,General Medicine,City Care Hospital,West,2025-11-22 19:12:45.524547
+DR00020,Vikram Reddy,Endocrinology,Prime Care Clinic,North,2025-11-22 19:12:45.524551
+DR00021,Sara Das,Cardiology,Sunrise Medical,West,2025-11-22 19:12:45.524555
+DR00022,Vikram Sharma,Cardiology,Sunrise Medical,East,2025-11-22 19:12:45.524558
+DR00023,Rohan Verma,Orthopedics,Prime Care Clinic,Central,2025-11-22 19:12:45.524563
+DR00024,Kunal Khan,Orthopedics,Prime Care Clinic,North,2025-11-22 19:12:45.524567
+DR00025,Vikram Mehta,Neurology,Global Health Center,East,2025-11-22 19:12:45.524573
+DR00026,Ananya Khan,Orthopedics,Global Health Center,North,2025-11-22 19:12:45.524581
+DR00027,Vikram Verma,Endocrinology,City Care Hospital,Central,2025-11-22 19:12:45.524588
+DR00028,Priya Sharma,Oncology,Metro Hospital,West,2025-11-22 19:12:45.524594
+DR00029,Isha Das,Orthopedics,Global Health Center,East,2025-11-22 19:12:45.524613
+DR00030,Sara Reddy,General Medicine,Metro Hospital,East,2025-11-22 19:12:45.524628
+DR00031,Ananya Sharma,Neurology,Sunrise Medical,North,2025-11-22 19:12:45.524634
+DR00032,Sara Verma,Orthopedics,Metro Hospital,East,2025-11-22 19:12:45.524640
+DR00033,Arjun Mehta,Oncology,Sunrise Medical,North,2025-11-22 19:12:45.524646
+DR00034,Ananya Singh,Endocrinology,Sunrise Medical,West,2025-11-22 19:12:45.524653
+DR00035,Priya Mehta,Neurology,City Care Hospital,East,2025-11-22 19:12:45.524659
+DR00036,Isha Iyer,Neurology,Sunrise Medical,South,2025-11-22 19:12:45.524672
+DR00037,Isha Verma,Neurology,Metro Hospital,Central,2025-11-22 19:12:45.524676
+DR00038,Sara Sharma,Endocrinology,Sunrise Medical,South,2025-11-22 19:12:45.524680
+DR00039,Neha Patel,General Medicine,Global Health Center,South,2025-11-22 19:12:45.524684
+DR00040,Priya Singh,Cardiology,Sunrise Medical,North,2025-11-22 19:12:45.524687
+DR00041,Isha Das,Neurology,Prime Care Clinic,North,2025-11-22 19:12:45.524692
+DR00042,Sara Mehta,Oncology,Prime Care Clinic,West,2025-11-22 19:12:45.524696
+DR00043,Priya Singh,Oncology,Prime Care Clinic,South,2025-11-22 19:12:45.524699
+DR00044,Vikram Sharma,General Medicine,Sunrise Medical,South,2025-11-22 19:12:45.524703
+DR00045,Vikram Mehta,Endocrinology,Metro Hospital,South,2025-11-22 19:12:45.524706
+DR00046,Isha Gupta,Endocrinology,Metro Hospital,South,2025-11-22 19:12:45.524710
+DR00047,Sara Mehta,General Medicine,Metro Hospital,East,2025-11-22 19:12:45.524721
+DR00048,Kunal Das,Orthopedics,Metro Hospital,South,2025-11-22 19:12:45.524727
+DR00049,Neha Mehta,Oncology,Sunrise Medical,North,2025-11-22 19:12:45.524733
+DR00050,Vikram Patel,Orthopedics,City Care Hospital,Central,2025-11-22 19:12:45.524740
