@@ -1,7 +1,7 @@
 I wanted to analyze healthcare claim costs across patients, providers, drugs, and time, using real-world healthcare concepts like medical claims and pharmacy claims.
 I designed and implemented a mini healthcare data warehouse with staging, dimensional and fact layers following a star-schema approach.
 
-*Architecture explained:*
+*Architecture Explain*
 
 - Imported raw CSV data into staging tables
 
