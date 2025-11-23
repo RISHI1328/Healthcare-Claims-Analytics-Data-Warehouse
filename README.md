@@ -37,8 +37,4 @@ MySQL, Workbench, SQL
 
 
 
-Built 2 fact tables (Medical Claims & Pharmacy Claims) linked through foreign keys.
 
-Loaded 2000+ fact records and standardized values using TRIM, COALESCE, CASE, and date_key logic.
-
-Executed analytical queries to identify high-cost patients, top providers, drug utilization, and cost trends.
