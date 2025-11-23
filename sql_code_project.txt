@@ -1,0 +1,397 @@
+CREATE DATABASE healthcare_analytics;
+USE healthcare_analytics;
+
+CREATE TABLE stg_patients (
+    src_patient_id      VARCHAR(50)  NOT NULL,
+    first_name          VARCHAR(100),
+    last_name           VARCHAR(100),
+    gender              CHAR(1),                
+    date_of_birth       DATE,
+    region              VARCHAR(100),            
+    insurance_plan      VARCHAR(50),
+    load_ts             TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY (src_patient_id)
+);
+
+
+CREATE TABLE stg_providers (
+    src_provider_id     VARCHAR(50)  NOT NULL,
+    provider_name       VARCHAR(200),
+    specialty           VARCHAR(100),
+    hospital_name       VARCHAR(200),
+    region              VARCHAR(100),
+    load_ts             TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY (src_provider_id)
+);
+
+CREATE TABLE stg_drugs (
+    src_drug_id         VARCHAR(50)  NOT NULL,   -- e.g. NDC
+    brand_name          VARCHAR(200),
+    molecule_name       VARCHAR(200),
+    therapeutic_area    VARCHAR(100),           -- e.g. 'Cardiology', 'Diabetes'
+    load_ts             TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY (src_drug_id)
+);
+
+CREATE TABLE stg_claims_medical (
+    src_claim_id        VARCHAR(50)  NOT NULL,
+    src_patient_id      VARCHAR(50)  NOT NULL,
+    src_provider_id     VARCHAR(50),           -- could be null if unknown
+    service_date        DATE         NOT NULL,
+    diagnosis_code      VARCHAR(20),
+    procedure_code      VARCHAR(20),
+    claim_amount        DECIMAL(12,2),
+    paid_amount         DECIMAL(12,2),
+    copay_amount        DECIMAL(12,2),
+    load_ts             TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY (src_claim_id)
+);
+
+CREATE TABLE stg_claims_pharmacy (
+    src_rx_claim_id     VARCHAR(50)  NOT NULL,
+    src_patient_id      VARCHAR(50)  NOT NULL,
+    src_provider_id     VARCHAR(50),
+    src_drug_id         VARCHAR(50),
+    dispense_date       DATE         NOT NULL,
+    quantity            INT,
+    days_supply         INT,
+    rx_cost             DECIMAL(12,2),
+    patient_pay         DECIMAL(12,2),
+    load_ts             TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY (src_rx_claim_id)
+);
+#################################################################################
+#Build the DATA WAREHOUSE Layer
+
+
+USE healthcare_analytics;
+CREATE TABLE dim_patient (
+    patient_key INT AUTO_INCREMENT PRIMARY KEY,
+    src_patient_id VARCHAR(50),
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    gender CHAR(1),
+    date_of_birth DATE,
+    region VARCHAR(100),
+    insurance_plan VARCHAR(50),
+    effective_start_date DATE,
+    effective_end_date DATE,
+    is_current TINYINT(1) DEFAULT 1
+);
+
+
+INSERT INTO dim_patient (
+    src_patient_id,
+    first_name,
+    last_name,
+    gender,
+    date_of_birth,
+    region,
+    insurance_plan,
+    effective_start_date,
+    effective_end_date,
+    is_current
+)
+SELECT
+    src_patient_id,
+    first_name,
+    last_name,
+    gender,
+    date_of_birth,
+    region,
+    insurance_plan,
+    CURDATE(),
+    NULL,
+    1
+FROM stg_patients;
+
+SELECT COUNT(*) FROM dim_date;
+
+SELECT dispense_date FROM stg_claims_pharmacy LIMIT 10;
+
+
+
+
+
+################################################################
+
+#CREATE TABLE dim_date
+CREATE TABLE dim_provider (
+    provider_key INT AUTO_INCREMENT PRIMARY KEY,
+    src_provider_id VARCHAR(50),
+    provider_name VARCHAR(200),
+    specialty VARCHAR(100),
+    hospital_name VARCHAR(200),
+    region VARCHAR(100)
+);
+
+INSERT INTO dim_provider (
+    src_provider_id,
+    provider_name,
+    specialty,
+    hospital_name,
+    region
+)
+SELECT
+    TRIM(src_provider_id),
+    TRIM(provider_name),
+    TRIM(specialty),
+    TRIM(hospital_name),
+    TRIM(region)
+FROM stg_providers;
+
+SELECT COUNT(*) FROM dim_provider;
+SELECT * FROM dim_provider LIMIT 5;
+
+##########################################################################
+
+USE healthcare_analytics;
+
+CREATE TABLE dim_drug (
+    drug_key INT AUTO_INCREMENT PRIMARY KEY,
+    src_drug_id VARCHAR(50),
+    brand_name VARCHAR(200),
+    molecule_name VARCHAR(200),
+    therapeutic_area VARCHAR(100)
+);
+
+INSERT INTO dim_drug (
+    src_drug_id,
+    brand_name,
+    molecule_name,
+    therapeutic_area
+)
+SELECT
+    TRIM(src_drug_id),
+    TRIM(brand_name),
+    TRIM(molecule_name),
+    TRIM(therapeutic_area)
+FROM stg_drugs;
+
+
+###################################################################################
+CREATE TABLE dim_date (
+    date_key INT PRIMARY KEY,   -- e.g. 20250131
+    full_date DATE,
+    day INT,
+    month INT,
+    quarter INT,
+    year INT,
+    day_name VARCHAR(20),
+    month_name VARCHAR(20)
+);
+
+
+INSERT INTO dim_date (
+    date_key,
+    full_date,
+    day,
+    month,
+    quarter,
+    year,
+    day_name,
+    month_name
+)
+SELECT DISTINCT
+    CAST(DATE_FORMAT(d, '%Y%m%d') AS UNSIGNED) AS date_key,
+    d AS full_date,
+    DAY(d) AS day,
+    MONTH(d) AS month,
+    QUARTER(d) AS quarter,
+    YEAR(d) AS year,
+    DATE_FORMAT(d, '%W') AS day_name,
+    DATE_FORMAT(d, '%M') AS month_name
+FROM (
+    SELECT service_date AS d
+    FROM stg_claims_medical
+    WHERE service_date IS NOT NULL
+
+    UNION
+
+    SELECT dispense_date AS d
+    FROM stg_claims_pharmacy
+    WHERE dispense_date IS NOT NULL
+) AS all_dates;
+
+SELECT COUNT(*) FROM dim_date;
+SELECT * FROM dim_date ORDER BY full_date LIMIT 5;
+#---------------------------------------------------------------------------------------
+
+CREATE TABLE fact_claim_medical (
+    claim_id INT AUTO_INCREMENT PRIMARY KEY,
+    src_claim_id VARCHAR(50),
+    patient_key INT,
+    provider_key INT,
+    date_key INT,
+    diagnosis_code VARCHAR(20),
+    procedure_code VARCHAR(20),
+    claim_amount DECIMAL(12,2),
+    paid_amount DECIMAL(12,2),
+    copay_amount DECIMAL(12,2),
+    FOREIGN KEY (patient_key) REFERENCES dim_patient(patient_key),
+    FOREIGN KEY (provider_key) REFERENCES dim_provider(provider_key),
+    FOREIGN KEY (date_key) REFERENCES dim_date(date_key)
+);
+
+
+CREATE TABLE fact_claim_pharmacy (
+    rx_claim_id INT AUTO_INCREMENT PRIMARY KEY,
+    src_rx_claim_id VARCHAR(50),
+    patient_key INT,
+    provider_key INT,
+    drug_key INT,
+    date_key INT,
+    quantity INT,
+    days_supply INT,
+    rx_cost DECIMAL(12,2),
+    patient_pay DECIMAL(12,2),
+    FOREIGN KEY (patient_key) REFERENCES dim_patient(patient_key),
+    FOREIGN KEY (provider_key) REFERENCES dim_provider(provider_key),
+    FOREIGN KEY (drug_key) REFERENCES dim_drug(drug_key),
+    FOREIGN KEY (date_key) REFERENCES dim_date(date_key)
+);
+
+
+INSERT INTO fact_claim_medical (
+    src_claim_id,
+    patient_key,
+    provider_key,
+    date_key,
+    diagnosis_code,
+    procedure_code,
+    claim_amount,
+    paid_amount,
+    copay_amount
+)
+SELECT
+    m.src_claim_id,
+    dp.patient_key,
+    dpr.provider_key,
+    dd.date_key,
+    m.diagnosis_code,
+    m.procedure_code,
+    m.claim_amount,
+    m.paid_amount,
+    m.copay_amount
+FROM stg_claims_medical m
+JOIN dim_patient  dp   ON dp.src_patient_id   = m.src_patient_id
+JOIN dim_provider dpr  ON dpr.src_provider_id = m.src_provider_id
+JOIN dim_date     dd   ON dd.full_date        = m.service_date;
+
+INSERT INTO fact_claim_pharmacy (
+    src_rx_claim_id,
+    patient_key,
+    provider_key,
+    drug_key,
+    date_key,
+    quantity,
+    days_supply,
+    rx_cost,
+    patient_pay
+)
+SELECT
+    r.src_rx_claim_id,
+    dp.patient_key,
+    dpr.provider_key,
+    ddg.drug_key,
+    dd.date_key,
+    r.quantity,
+    r.days_supply,
+    r.rx_cost,
+    r.patient_pay
+FROM stg_claims_pharmacy r
+JOIN dim_patient  dp   ON dp.src_patient_id   = r.src_patient_id
+JOIN dim_provider dpr  ON dpr.src_provider_id = r.src_provider_id
+JOIN dim_drug     ddg  ON ddg.src_drug_id     = r.src_drug_id
+JOIN dim_date     dd   ON dd.full_date        = r.dispense_date;
+
+SELECT COUNT(*) FROM fact_claim_pharmacy;
+
+#======================================================================================
+
+-- Total medical + pharmacy cost per patient (top 10)
+SELECT 
+    dp.patient_key,
+    dp.src_patient_id,
+    dp.region,
+    COALESCE(SUM(fm.claim_amount), 0)      AS total_medical_cost,
+    COALESCE(SUM(fp.rx_cost), 0)           AS total_pharmacy_cost,
+    COALESCE(SUM(fm.claim_amount), 0)
+      + COALESCE(SUM(fp.rx_cost), 0)       AS total_overall_cost
+FROM dim_patient dp
+LEFT JOIN fact_claim_medical  fm ON fm.patient_key = dp.patient_key
+LEFT JOIN fact_claim_pharmacy fp ON fp.patient_key = dp.patient_key
+GROUP BY dp.patient_key, dp.src_patient_id, dp.region
+ORDER BY total_overall_cost DESC
+LIMIT 10;
+
+#Top 10 most expensive patients
+SELECT 
+    dp.patient_key,
+    dp.src_patient_id,
+    dp.region,
+    COALESCE(SUM(fm.claim_amount), 0)      AS total_medical_cost,
+    COALESCE(SUM(fp.rx_cost), 0)           AS total_pharmacy_cost,
+    COALESCE(SUM(fm.claim_amount), 0)
+      + COALESCE(SUM(fp.rx_cost), 0)       AS total_overall_cost
+FROM dim_patient dp
+LEFT JOIN fact_claim_medical  fm ON fm.patient_key = dp.patient_key
+LEFT JOIN fact_claim_pharmacy fp ON fp.patient_key = dp.patient_key
+GROUP BY dp.patient_key, dp.src_patient_id, dp.region
+ORDER BY total_overall_cost DESC
+LIMIT 10;
+
+#Total annual healthcare cost per patient
+SELECT 
+    dd.year,
+    dp.region,
+    SUM(fm.claim_amount + COALESCE(fp.rx_cost,0)) AS total_cost
+FROM dim_patient dp
+JOIN fact_claim_medical fm ON fm.patient_key = dp.patient_key
+JOIN dim_date dd ON dd.date_key = fm.date_key
+LEFT JOIN fact_claim_pharmacy fp ON fp.patient_key = dp.patient_key
+GROUP BY dd.year, dp.region
+ORDER BY dd.year, total_cost DESC;
+
+#Top Hospitals by Medical Spend
+SELECT 
+    dpr.hospital_name,
+    SUM(fm.claim_amount) AS total_medical_spend
+FROM dim_provider dpr
+JOIN fact_claim_medical fm ON fm.provider_key = dpr.provider_key
+GROUP BY dpr.hospital_name
+ORDER BY total_medical_spend DESC
+LIMIT 10;
+
+#Top Drugs by Rx Cost
+SELECT
+    ddg.brand_name,
+    ddg.therapeutic_area,
+    SUM(fp.rx_cost) AS total_drug_cost
+FROM dim_drug ddg
+JOIN fact_claim_pharmacy fp ON fp.drug_key = ddg.drug_key
+GROUP BY ddg.brand_name, ddg.therapeutic_area
+ORDER BY total_drug_cost DESC
+LIMIT 10;
+
+#Monthly trend of total spend
+SELECT
+    dd.year,
+    dd.month,
+    SUM(fm.claim_amount) AS total_medical,
+    SUM(fp.rx_cost) AS total_pharmacy,
+    SUM(fm.claim_amount + fp.rx_cost) AS total_overall
+FROM dim_date dd
+LEFT JOIN fact_claim_medical fm ON fm.date_key = dd.date_key
+LEFT JOIN fact_claim_pharmacy fp ON fp.date_key = dd.date_key
+GROUP BY dd.year, dd.month
+ORDER BY dd.year, dd.month;
+
+
+
+
